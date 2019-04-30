@@ -1,6 +1,8 @@
 package it.polito.tdp.metroparis.model;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -13,6 +15,7 @@ public class Model {
 	
 	private Graph<Fermata, DefaultEdge> grafo ;
 	private List<Fermata> fermate ;
+	private Map<Integer, Fermata> fermateIdMap ;
 	
 	public void creaGrafo() {
 		
@@ -22,11 +25,18 @@ public class Model {
 		// Aggiungi i vertici
 		MetroDAO dao = new MetroDAO() ;
 		this.fermate = dao.getAllFermate() ;
+		
+		// crea idMap
+		this.fermateIdMap = new HashMap<>() ;
+		for(Fermata f: this.fermate)
+			fermateIdMap.put(f.getIdFermata(), f) ;
+		
 		Graphs.addAllVertices(this.grafo, this.fermate) ;
 		
 		// Aggiungi gli archi (opzione 1)
 		/*
 		for( Fermata partenza : this.grafo.vertexSet() ) {
+//			System.out.print(partenza.getIdFermata()+" ");
 			for( Fermata arrivo: this.grafo.vertexSet() ) {
 				
 				if(dao.esisteConnessione(partenza, arrivo)) {
@@ -37,13 +47,16 @@ public class Model {
 		}
 		*/
 		
+		
 		// Aggiungi gli archi (opzione 2)
+		
 		for( Fermata partenza : this.grafo.vertexSet() ) {
-			List<Fermata> arrivi = dao.stazioniArrivo(partenza) ;
+			List<Fermata> arrivi = dao.stazioniArrivo(partenza, fermateIdMap) ;
 			
 			for(Fermata arrivo: arrivi) 
 				this.grafo.addEdge(partenza, arrivo) ;
 		}
+		
 		
 		// Aggiungi gli archi (opzione 3)
 
