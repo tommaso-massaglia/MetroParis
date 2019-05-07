@@ -1,5 +1,6 @@
 package it.polito.tdp.metroparis.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,9 @@ import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import org.jgrapht.traverse.BreadthFirstIterator;
+import org.jgrapht.traverse.DepthFirstIterator;
+import org.jgrapht.traverse.GraphIterator;
 
 import it.polito.tdp.metroparis.db.MetroDAO;
 
@@ -59,11 +63,25 @@ public class Model {
 		
 		
 		// Aggiungi gli archi (opzione 3)
-
-
-		
 		
 	}
+	
+	public List<Fermata> fermateRaggiungibili(Fermata source) {
+		
+		List<Fermata> result = new ArrayList<Fermata>() ;
+		Map<Fermata, Fermata> back = new HashMap<>() ;
+		
+		GraphIterator<Fermata, DefaultEdge> it = new BreadthFirstIterator<>(this.grafo, source) ;
+//		GraphIterator<Fermata, DefaultEdge> it = new DepthFirstIterator<>(this.grafo, source) ;
+		
+		while(it.hasNext()) {
+			result.add(it.next()) ;
+		}
+				
+		return result ;
+		
+	}
+	
 
 	public Graph<Fermata, DefaultEdge> getGrafo() {
 		return grafo;
