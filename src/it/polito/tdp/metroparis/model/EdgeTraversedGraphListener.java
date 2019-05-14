@@ -2,6 +2,7 @@ package it.polito.tdp.metroparis.model;
 
 import java.util.Map;
 
+import org.jgrapht.Graph;
 import org.jgrapht.event.ConnectedComponentTraversalEvent;
 import org.jgrapht.event.EdgeTraversalEvent;
 import org.jgrapht.event.TraversalListener;
@@ -11,11 +12,13 @@ import org.jgrapht.graph.DefaultEdge;
 public class EdgeTraversedGraphListener implements TraversalListener<Fermata, DefaultEdge> {
 	
 	Map<Fermata, Fermata> back ;
+	Graph<Fermata, DefaultEdge> grafo;
 
 
-	public EdgeTraversedGraphListener(Map<Fermata, Fermata> back) {
+	public EdgeTraversedGraphListener(Graph<Fermata, DefaultEdge> grafo, Map<Fermata, Fermata> back) {
 		super();
 		this.back = back;
+		this.grafo = grafo;
 	}
 
 	@Override
@@ -27,9 +30,9 @@ public class EdgeTraversedGraphListener implements TraversalListener<Fermata, De
 	}
 
 	@Override
-	public void edgeTraversed(EdgeTraversalEvent<DefaultEdge> e) {
-	
-		back.put(e.getEdge().destinationVertex(), e.getEdge().sourceVertex() ); 
+	public void edgeTraversed(EdgeTraversalEvent<DefaultEdge> ev) {
+		
+		
 		
 	}
 
