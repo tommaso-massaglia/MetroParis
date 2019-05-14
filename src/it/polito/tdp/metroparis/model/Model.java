@@ -7,25 +7,30 @@ import java.util.List;
 import java.util.Map;
 
 import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.event.ConnectedComponentTraversalEvent;
 import org.jgrapht.event.EdgeTraversalEvent;
 import org.jgrapht.event.TraversalListener;
 import org.jgrapht.event.VertexTraversalEvent;
-import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.traverse.BreadthFirstIterator;
 import org.jgrapht.traverse.GraphIterator;
+
+import com.javadocmd.simplelatlng.LatLngTool;
+import com.javadocmd.simplelatlng.util.LengthUnit;
 
 import it.polito.tdp.metroparis.db.MetroDAO;
 
 public class Model {
 	
-	private class EdgeTraversedGraphListener implements TraversalListener<Fermata, DefaultEdge > {
+	private class EdgeTraversedGraphListener implements TraversalListener<Fermata, DefaultWeightedEdge > {
 
-		Graph<Fermata, DefaultEdge> grafo;
+		Graph<Fermata, DefaultWeightedEdge> grafo;
 		
-		public EdgeTraversedGraphListener(Graph<Fermata, DefaultEdge> grafo) {
+		public EdgeTraversedGraphListener(Graph<Fermata, DefaultWeightedEdge> grafo) {
 			super();
 			this.grafo = grafo;
 		}
@@ -41,7 +46,7 @@ public class Model {
 		}
 
 		@Override
-		public void edgeTraversed(EdgeTraversalEvent<DefaultEdge> ev) {
+		public void edgeTraversed(EdgeTraversalEvent<DefaultWeightedEdge> ev) {
 			
 			Fermata sourceVertex = grafo.getEdgeSource(ev.getEdge());
 			Fermata targetVertex = grafo.getEdgeTarget(ev.getEdge());
@@ -67,7 +72,7 @@ public class Model {
 		
 	}
 
-	private Graph<Fermata, DefaultEdge> grafo;
+	private Graph<Fermata, DefaultWeightedEdge> grafo;
 	private List<Fermata> fermate;
 	private Map<Integer, Fermata> fermateIdMap;
 	private Map<Fermata, Fermata> backVisit;
@@ -75,7 +80,7 @@ public class Model {
 	public void creaGrafo() {
 
 		// Crea l'oggetto grafo
-		this.grafo = new SimpleDirectedGraph<>(DefaultEdge.class);
+		this.grafo = new SimpleDirectedGraph<>(DefaultWeightedEdge.class);
 
 		// Aggiungi i vertici
 		MetroDAO dao = new MetroDAO();
@@ -109,7 +114,16 @@ public class Model {
 				this.grafo.addEdge(partenza, arrivo);
 		}
 
-		// Aggiungi gli archi (opzione 3)
+		// Aggiungi i pesi agli archi
+		
+		List<ConnessioneVelocita> archipesati = dao.getConnessioneVelocita();
+		for (ConnessioneVelocita cp : archipesati) {
+			Fermata partenza = fermateIdMap.get(cp.getStazP());
+			Fermata arrivo = fermateIdMap.get(cp.getStazA());
+			double distanza = LatLngTool.distance(partenza.getCoords(), arrivo.getCoords(), LengthUnit.KILOMETER);
+			double peso = distanza / cp.getVelocita() * 3600;
+			grafo.setEdgeWeight(partenza, arrivo, peso);
+		}
 
 	}
 
@@ -118,8 +132,8 @@ public class Model {
 		List<Fermata> result = new ArrayList<Fermata>();
 		backVisit = new HashMap<>();
 
-		GraphIterator<Fermata, DefaultEdge> it = new BreadthFirstIterator<>(this.grafo, source);
-//		GraphIterator<Fermata, DefaultEdge> it = new DepthFirstIterator<>(this.grafo, source) ;
+		GraphIterator<Fermata, DefaultWeightedEdge> it = new BreadthFirstIterator<>(this.grafo, source);
+//		GraphIterator<Fermata, DefaultWeightedEdge> it = new DepthFirstIterator<>(this.grafo, source) ;
 
 		it.addTraversalListener(new Model.EdgeTraversedGraphListener(grafo));
 		backVisit.put(source, null);
@@ -152,12 +166,18 @@ public class Model {
 
 	}
 
-	public Graph<Fermata, DefaultEdge> getGrafo() {
+	public Graph<Fermata, DefaultWeightedEdge> getGrafo() {
 		return grafo;
 	}
 
 	public List<Fermata> getFermate() {
 		return fermate;
+	}
+	
+	public List<Fermata> trovaCamminoMinimo (Fermata partenza, Fermata arrivo){
+		DijkstraShortestPath<Fermata, DefaultWeightedEdge> dijkstra = new DijkstraShortestPath<>(this.grafo);
+		GraphPath<Fermata, DefaultWeightedEdge> path = dijkstra.getPath(partenza, arrivo);
+		return path.getVertexList();
 	}
 
 }

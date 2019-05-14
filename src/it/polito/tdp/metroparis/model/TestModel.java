@@ -23,6 +23,8 @@ public class TestModel {
 		System.out.println("Percorso: ") ;
 		System.out.println(percorso);
 		
+		System.out.println(m.trovaCamminoMinimo(source, target));
+		
 	}
 
 }
